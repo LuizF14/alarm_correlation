@@ -1,0 +1,164 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script src="lib/bindings/utils.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 700px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"Alert Description": "State is failed for Port 1I Box 1 Bay 9 - SmartOSS Id: d7f34d76-733c-457d-8a22-b09ee38413e8", "Alert Severity": 1, "Alert Type": "MANAGEMENT_BOARD_PHYSICAL_DISKS_STATE", "First Occurrence": "2025-08-25T17:30:22.929985", "Last Occurrence": "2025-12-05T18:00:18.701156", "Node ID": "0242b9f3-9a3b-4b16-a2d8-d7dad5092920", "Node Name": "SPVIV-NCHVBW-SVT04", "color": "yellow", "id": "361241b5-3436-470d-89d1-23528cd7e49a", "index": 0, "label": "MANAGEMENT_BOARD_PHYSICAL_DISKS_STATE", "shape": "dot", "size": 10, "title": "Description: State is failed for Port 1I Box 1 Bay 9 - SmartOSS Id: d7f34d76-733c-457d-8a22-b09ee38413e8"}, {"Alert Description": "Status is failed for Port 1I Box 1 Bay 12 - SmartOSS Id: f64fc911-a8e9-4f5e-9f6a-6dce3203a3a9", "Alert Severity": 1, "Alert Type": "MANAGEMENT_BOARD_PHYSICAL_DISKS_STATUS", "First Occurrence": "2025-08-25T17:30:22.929985", "Last Occurrence": "2025-12-05T18:00:18.701156", "Node ID": "0242b9f3-9a3b-4b16-a2d8-d7dad5092920", "Node Name": "SPVIV-NCHVBW-SVT04", "color": "yellow", "id": "d7656d32-1d9e-4a19-960f-7a7e42b64793", "index": 2, "label": "MANAGEMENT_BOARD_PHYSICAL_DISKS_STATUS", "shape": "dot", "size": 10, "title": "Description: Status is failed for Port 1I Box 1 Bay 12 - SmartOSS Id: f64fc911-a8e9-4f5e-9f6a-6dce3203a3a9"}, {"Alert Description": "Status is failed for Port 1I Box 1 Bay 5 - SmartOSS Id: 544b8145-c541-4279-8d02-e5dedcee72d2", "Alert Severity": 1, "Alert Type": "MANAGEMENT_BOARD_PHYSICAL_DISKS_STATUS", "First Occurrence": "2025-08-25T17:30:22.929985", "Last Occurrence": "2025-12-05T18:00:18.701156", "Node ID": "0242b9f3-9a3b-4b16-a2d8-d7dad5092920", "Node Name": "SPVIV-NCHVBW-SVT04", "color": "yellow", "id": "682d245a-b190-4ad3-97d7-b83d30c1a168", "index": 5, "label": "MANAGEMENT_BOARD_PHYSICAL_DISKS_STATUS", "shape": "dot", "size": 10, "title": "Description: Status is failed for Port 1I Box 1 Bay 5 - SmartOSS Id: 544b8145-c541-4279-8d02-e5dedcee72d2"}, {"Alert Description": "State is failed for Port 1I Box 1 Bay 5 - SmartOSS Id: 975745b2-f06d-40b9-9770-503ad2b8b4dd", "Alert Severity": 1, "Alert Type": "MANAGEMENT_BOARD_PHYSICAL_DISKS_STATE", "First Occurrence": "2025-08-25T17:30:22.929985", "Last Occurrence": "2025-12-05T18:00:18.701156", "Node ID": "0242b9f3-9a3b-4b16-a2d8-d7dad5092920", "Node Name": "SPVIV-NCHVBW-SVT04", "color": "yellow", "id": "73793695-a299-4d19-a985-df5ed70b9e60", "index": 7, "label": "MANAGEMENT_BOARD_PHYSICAL_DISKS_STATE", "shape": "dot", "size": 10, "title": "Description: State is failed for Port 1I Box 1 Bay 5 - SmartOSS Id: 975745b2-f06d-40b9-9770-503ad2b8b4dd"}, {"Alert Description": "Status is failed for Port 1I Box 1 Bay 11 - SmartOSS Id: 983da188-7dc6-417d-aa8d-3f65d25ffa2a", "Alert Severity": 1, "Alert Type": "MANAGEMENT_BOARD_PHYSICAL_DISKS_STATUS", "First Occurrence": "2025-08-25T17:30:22.929985", "Last Occurrence": "2025-12-05T18:00:18.701156", "Node ID": "0242b9f3-9a3b-4b16-a2d8-d7dad5092920", "Node Name": "SPVIV-NCHVBW-SVT04", "color": "yellow", "id": "74a4dfea-eb23-48ca-8da1-f11489496218", "index": 8, "label": "MANAGEMENT_BOARD_PHYSICAL_DISKS_STATUS", "shape": "dot", "size": 10, "title": "Description: Status is failed for Port 1I Box 1 Bay 11 - SmartOSS Id: 983da188-7dc6-417d-aa8d-3f65d25ffa2a"}, {"Alert Description": "State is failed for Port 1I Box 1 Bay 12 - SmartOSS Id: 7ca9cbff-fb3f-431f-bd23-76ebcd7f7d84", "Alert Severity": 1, "Alert Type": "MANAGEMENT_BOARD_PHYSICAL_DISKS_STATE", "First Occurrence": "2025-08-25T17:30:22.929985", "Last Occurrence": "2025-12-05T18:00:18.701156", "Node ID": "0242b9f3-9a3b-4b16-a2d8-d7dad5092920", "Node Name": "SPVIV-NCHVBW-SVT04", "color": "yellow", "id": "93a7eb63-8099-496b-92c0-57608e9ee333", "index": 9, "label": "MANAGEMENT_BOARD_PHYSICAL_DISKS_STATE", "shape": "dot", "size": 10, "title": "Description: State is failed for Port 1I Box 1 Bay 12 - SmartOSS Id: 7ca9cbff-fb3f-431f-bd23-76ebcd7f7d84"}, {"Alert Description": "State is failed for Port 1I Box 1 Bay 8 - SmartOSS Id: 40da2794-9130-43c3-a52f-99f88918a617", "Alert Severity": 1, "Alert Type": "MANAGEMENT_BOARD_PHYSICAL_DISKS_STATE", "First Occurrence": "2025-08-25T17:30:22.929985", "Last Occurrence": "2025-12-05T18:00:18.701156", "Node ID": "0242b9f3-9a3b-4b16-a2d8-d7dad5092920", "Node Name": "SPVIV-NCHVBW-SVT04", "color": "yellow", "id": "5e99affe-9087-47e7-bb6e-de90eb0551f5", "index": 10, "label": "MANAGEMENT_BOARD_PHYSICAL_DISKS_STATE", "shape": "dot", "size": 10, "title": "Description: State is failed for Port 1I Box 1 Bay 8 - SmartOSS Id: 40da2794-9130-43c3-a52f-99f88918a617"}, {"Alert Description": "Status is failed for Port 1I Box 1 Bay 8 - SmartOSS Id: d1eef0de-2a32-4f5e-b368-3115dd54d665", "Alert Severity": 1, "Alert Type": "MANAGEMENT_BOARD_PHYSICAL_DISKS_STATUS", "First Occurrence": "2025-08-25T17:30:22.929985", "Last Occurrence": "2025-12-05T18:00:18.701156", "Node ID": "0242b9f3-9a3b-4b16-a2d8-d7dad5092920", "Node Name": "SPVIV-NCHVBW-SVT04", "color": "yellow", "id": "e6961618-e99d-4fb8-9200-87ae0c39eeb3", "index": 11, "label": "MANAGEMENT_BOARD_PHYSICAL_DISKS_STATUS", "shape": "dot", "size": 10, "title": "Description: Status is failed for Port 1I Box 1 Bay 8 - SmartOSS Id: d1eef0de-2a32-4f5e-b368-3115dd54d665"}, {"Alert Description": "Status is failed for Port 1I Box 1 Bay 9 - SmartOSS Id: 3fea74a3-8107-49c1-956e-66748ca2a942", "Alert Severity": 1, "Alert Type": "MANAGEMENT_BOARD_PHYSICAL_DISKS_STATUS", "First Occurrence": "2025-08-25T17:30:22.929985", "Last Occurrence": "2025-12-05T18:00:18.701156", "Node ID": "0242b9f3-9a3b-4b16-a2d8-d7dad5092920", "Node Name": "SPVIV-NCHVBW-SVT04", "color": "yellow", "id": "b6018589-9c19-4ee1-a7cf-573daba68e96", "index": 12, "label": "MANAGEMENT_BOARD_PHYSICAL_DISKS_STATUS", "shape": "dot", "size": 10, "title": "Description: Status is failed for Port 1I Box 1 Bay 9 - SmartOSS Id: 3fea74a3-8107-49c1-956e-66748ca2a942"}, {"Alert Description": "State is failed for Port 1I Box 1 Bay 11 - SmartOSS Id: 0e7ce85d-98a5-44dc-8eac-1e6127858fbd", "Alert Severity": 1, "Alert Type": "MANAGEMENT_BOARD_PHYSICAL_DISKS_STATE", "First Occurrence": "2025-08-25T17:30:22.929985", "Last Occurrence": "2025-12-05T18:00:18.701156", "Node ID": "0242b9f3-9a3b-4b16-a2d8-d7dad5092920", "Node Name": "SPVIV-NCHVBW-SVT04", "color": "yellow", "id": "88163a73-1490-48cc-b055-d53e5fe99d0b", "index": 14, "label": "MANAGEMENT_BOARD_PHYSICAL_DISKS_STATE", "shape": "dot", "size": 10, "title": "Description: State is failed for Port 1I Box 1 Bay 11 - SmartOSS Id: 0e7ce85d-98a5-44dc-8eac-1e6127858fbd"}, {"Alert Description": "Condition Device Array failed for 00143803479E620 - SmartOSS Id: 38767e3d-7458-44aa-84f7-e7cf364bfc15", "Alert Severity": 1, "Alert Type": "MANAGEMENT_BOARD_SMART_ARRAY_CONTROLLER_CONDITION_DEVICE_ARRAY", "First Occurrence": "2025-08-25T21:00:27.260507", "Last Occurrence": "2025-12-05T18:00:18.701156", "Node ID": "0242b9f3-9a3b-4b16-a2d8-d7dad5092920", "Node Name": "SPVIV-NCHVBW-SVT04", "color": "yellow", "id": "2fb7c30e-f608-45f8-b67c-43c02f0addd6", "index": 4, "label": "MANAGEMENT_BOARD_SMART_ARRAY_CONTROLLER_CONDITION_DEVICE_ARRAY", "shape": "dot", "size": 10, "title": "Description: Condition Device Array failed for 00143803479E620 - SmartOSS Id: 38767e3d-7458-44aa-84f7-e7cf364bfc15"}, {"Alert Description": "State is failed for 03 - SmartOSS Id: 473ea893-5af0-4225-a96b-20013bcd23b9", "Alert Severity": 1, "Alert Type": "MANAGEMENT_BOARD_VIRTUAL_DISKS_STATE", "First Occurrence": "2025-08-25T22:00:17.702414", "Last Occurrence": "2025-12-05T18:00:18.701156", "Node ID": "0242b9f3-9a3b-4b16-a2d8-d7dad5092920", "Node Name": "SPVIV-NCHVBW-SVT04", "color": "yellow", "id": "3d51cb31-b39e-4f3b-8146-73f9d8f7e327", "index": 1, "label": "MANAGEMENT_BOARD_VIRTUAL_DISKS_STATE", "shape": "dot", "size": 10, "title": "Description: State is failed for 03 - SmartOSS Id: 473ea893-5af0-4225-a96b-20013bcd23b9"}, {"Alert Description": "State is failed for 02 - SmartOSS Id: cc4d925a-bb55-4bc3-ab50-3314cab38ec3", "Alert Severity": 1, "Alert Type": "MANAGEMENT_BOARD_VIRTUAL_DISKS_STATE", "First Occurrence": "2025-08-25T22:00:17.702414", "Last Occurrence": "2025-12-05T18:00:18.701156", "Node ID": "0242b9f3-9a3b-4b16-a2d8-d7dad5092920", "Node Name": "SPVIV-NCHVBW-SVT04", "color": "yellow", "id": "b2f28454-5688-4bb1-aa2b-9cadbda50d54", "index": 3, "label": "MANAGEMENT_BOARD_VIRTUAL_DISKS_STATE", "shape": "dot", "size": 10, "title": "Description: State is failed for 02 - SmartOSS Id: cc4d925a-bb55-4bc3-ab50-3314cab38ec3"}, {"Alert Description": "Status is failed for 03 - SmartOSS Id: e71051a8-7224-4bd7-9cd1-f83017132b97", "Alert Severity": 1, "Alert Type": "MANAGEMENT_BOARD_VIRTUAL_DISKS_STATUS", "First Occurrence": "2025-08-25T22:00:17.702414", "Last Occurrence": "2025-12-05T18:00:18.701156", "Node ID": "0242b9f3-9a3b-4b16-a2d8-d7dad5092920", "Node Name": "SPVIV-NCHVBW-SVT04", "color": "yellow", "id": "9f102aa6-8425-4de3-a919-0bce25670e59", "index": 6, "label": "MANAGEMENT_BOARD_VIRTUAL_DISKS_STATUS", "shape": "dot", "size": 10, "title": "Description: Status is failed for 03 - SmartOSS Id: e71051a8-7224-4bd7-9cd1-f83017132b97"}, {"Alert Description": "Status is failed for 02 - SmartOSS Id: 205d24a0-9f85-457c-a9f3-1781bb385c42", "Alert Severity": 1, "Alert Type": "MANAGEMENT_BOARD_VIRTUAL_DISKS_STATUS", "First Occurrence": "2025-08-25T22:00:17.702414", "Last Occurrence": "2025-12-05T18:00:18.701156", "Node ID": "0242b9f3-9a3b-4b16-a2d8-d7dad5092920", "Node Name": "SPVIV-NCHVBW-SVT04", "color": "yellow", "id": "0eab0153-687b-4c37-8167-8ae98ed2fa67", "index": 13, "label": "MANAGEMENT_BOARD_VIRTUAL_DISKS_STATUS", "shape": "dot", "size": 10, "title": "Description: Status is failed for 02 - SmartOSS Id: 205d24a0-9f85-457c-a9f3-1781bb385c42"}]);
+                  edges = new vis.DataSet([{"arrows": "to", "from": "361241b5-3436-470d-89d1-23528cd7e49a", "to": "d7656d32-1d9e-4a19-960f-7a7e42b64793", "width": 1}, {"arrows": "to", "from": "361241b5-3436-470d-89d1-23528cd7e49a", "to": "682d245a-b190-4ad3-97d7-b83d30c1a168", "width": 1}, {"arrows": "to", "from": "361241b5-3436-470d-89d1-23528cd7e49a", "to": "73793695-a299-4d19-a985-df5ed70b9e60", "width": 1}, {"arrows": "to", "from": "361241b5-3436-470d-89d1-23528cd7e49a", "to": "74a4dfea-eb23-48ca-8da1-f11489496218", "width": 1}, {"arrows": "to", "from": "361241b5-3436-470d-89d1-23528cd7e49a", "to": "93a7eb63-8099-496b-92c0-57608e9ee333", "width": 1}, {"arrows": "to", "from": "361241b5-3436-470d-89d1-23528cd7e49a", "to": "5e99affe-9087-47e7-bb6e-de90eb0551f5", "width": 1}, {"arrows": "to", "from": "361241b5-3436-470d-89d1-23528cd7e49a", "to": "e6961618-e99d-4fb8-9200-87ae0c39eeb3", "width": 1}, {"arrows": "to", "from": "361241b5-3436-470d-89d1-23528cd7e49a", "to": "b6018589-9c19-4ee1-a7cf-573daba68e96", "width": 1}, {"arrows": "to", "from": "361241b5-3436-470d-89d1-23528cd7e49a", "to": "88163a73-1490-48cc-b055-d53e5fe99d0b", "width": 1}, {"arrows": "to", "from": "361241b5-3436-470d-89d1-23528cd7e49a", "to": "2fb7c30e-f608-45f8-b67c-43c02f0addd6", "width": 1}, {"arrows": "to", "from": "361241b5-3436-470d-89d1-23528cd7e49a", "to": "3d51cb31-b39e-4f3b-8146-73f9d8f7e327", "width": 1}, {"arrows": "to", "from": "361241b5-3436-470d-89d1-23528cd7e49a", "to": "b2f28454-5688-4bb1-aa2b-9cadbda50d54", "width": 1}, {"arrows": "to", "from": "361241b5-3436-470d-89d1-23528cd7e49a", "to": "9f102aa6-8425-4de3-a919-0bce25670e59", "width": 1}, {"arrows": "to", "from": "361241b5-3436-470d-89d1-23528cd7e49a", "to": "0eab0153-687b-4c37-8167-8ae98ed2fa67", "width": 1}, {"arrows": "to", "from": "d7656d32-1d9e-4a19-960f-7a7e42b64793", "to": "682d245a-b190-4ad3-97d7-b83d30c1a168", "width": 1}, {"arrows": "to", "from": "d7656d32-1d9e-4a19-960f-7a7e42b64793", "to": "73793695-a299-4d19-a985-df5ed70b9e60", "width": 1}, {"arrows": "to", "from": "d7656d32-1d9e-4a19-960f-7a7e42b64793", "to": "74a4dfea-eb23-48ca-8da1-f11489496218", "width": 1}, {"arrows": "to", "from": "d7656d32-1d9e-4a19-960f-7a7e42b64793", "to": "93a7eb63-8099-496b-92c0-57608e9ee333", "width": 1}, {"arrows": "to", "from": "d7656d32-1d9e-4a19-960f-7a7e42b64793", "to": "5e99affe-9087-47e7-bb6e-de90eb0551f5", "width": 1}, {"arrows": "to", "from": "d7656d32-1d9e-4a19-960f-7a7e42b64793", "to": "e6961618-e99d-4fb8-9200-87ae0c39eeb3", "width": 1}, {"arrows": "to", "from": "d7656d32-1d9e-4a19-960f-7a7e42b64793", "to": "b6018589-9c19-4ee1-a7cf-573daba68e96", "width": 1}, {"arrows": "to", "from": "d7656d32-1d9e-4a19-960f-7a7e42b64793", "to": "88163a73-1490-48cc-b055-d53e5fe99d0b", "width": 1}, {"arrows": "to", "from": "d7656d32-1d9e-4a19-960f-7a7e42b64793", "to": "2fb7c30e-f608-45f8-b67c-43c02f0addd6", "width": 1}, {"arrows": "to", "from": "d7656d32-1d9e-4a19-960f-7a7e42b64793", "to": "3d51cb31-b39e-4f3b-8146-73f9d8f7e327", "width": 1}, {"arrows": "to", "from": "d7656d32-1d9e-4a19-960f-7a7e42b64793", "to": "b2f28454-5688-4bb1-aa2b-9cadbda50d54", "width": 1}, {"arrows": "to", "from": "d7656d32-1d9e-4a19-960f-7a7e42b64793", "to": "9f102aa6-8425-4de3-a919-0bce25670e59", "width": 1}, {"arrows": "to", "from": "d7656d32-1d9e-4a19-960f-7a7e42b64793", "to": "0eab0153-687b-4c37-8167-8ae98ed2fa67", "width": 1}, {"arrows": "to", "from": "682d245a-b190-4ad3-97d7-b83d30c1a168", "to": "73793695-a299-4d19-a985-df5ed70b9e60", "width": 1}, {"arrows": "to", "from": "682d245a-b190-4ad3-97d7-b83d30c1a168", "to": "74a4dfea-eb23-48ca-8da1-f11489496218", "width": 1}, {"arrows": "to", "from": "682d245a-b190-4ad3-97d7-b83d30c1a168", "to": "93a7eb63-8099-496b-92c0-57608e9ee333", "width": 1}, {"arrows": "to", "from": "682d245a-b190-4ad3-97d7-b83d30c1a168", "to": "5e99affe-9087-47e7-bb6e-de90eb0551f5", "width": 1}, {"arrows": "to", "from": "682d245a-b190-4ad3-97d7-b83d30c1a168", "to": "e6961618-e99d-4fb8-9200-87ae0c39eeb3", "width": 1}, {"arrows": "to", "from": "682d245a-b190-4ad3-97d7-b83d30c1a168", "to": "b6018589-9c19-4ee1-a7cf-573daba68e96", "width": 1}, {"arrows": "to", "from": "682d245a-b190-4ad3-97d7-b83d30c1a168", "to": "88163a73-1490-48cc-b055-d53e5fe99d0b", "width": 1}, {"arrows": "to", "from": "682d245a-b190-4ad3-97d7-b83d30c1a168", "to": "2fb7c30e-f608-45f8-b67c-43c02f0addd6", "width": 1}, {"arrows": "to", "from": "682d245a-b190-4ad3-97d7-b83d30c1a168", "to": "3d51cb31-b39e-4f3b-8146-73f9d8f7e327", "width": 1}, {"arrows": "to", "from": "682d245a-b190-4ad3-97d7-b83d30c1a168", "to": "b2f28454-5688-4bb1-aa2b-9cadbda50d54", "width": 1}, {"arrows": "to", "from": "682d245a-b190-4ad3-97d7-b83d30c1a168", "to": "9f102aa6-8425-4de3-a919-0bce25670e59", "width": 1}, {"arrows": "to", "from": "682d245a-b190-4ad3-97d7-b83d30c1a168", "to": "0eab0153-687b-4c37-8167-8ae98ed2fa67", "width": 1}, {"arrows": "to", "from": "73793695-a299-4d19-a985-df5ed70b9e60", "to": "74a4dfea-eb23-48ca-8da1-f11489496218", "width": 1}, {"arrows": "to", "from": "73793695-a299-4d19-a985-df5ed70b9e60", "to": "93a7eb63-8099-496b-92c0-57608e9ee333", "width": 1}, {"arrows": "to", "from": "73793695-a299-4d19-a985-df5ed70b9e60", "to": "5e99affe-9087-47e7-bb6e-de90eb0551f5", "width": 1}, {"arrows": "to", "from": "73793695-a299-4d19-a985-df5ed70b9e60", "to": "e6961618-e99d-4fb8-9200-87ae0c39eeb3", "width": 1}, {"arrows": "to", "from": "73793695-a299-4d19-a985-df5ed70b9e60", "to": "b6018589-9c19-4ee1-a7cf-573daba68e96", "width": 1}, {"arrows": "to", "from": "73793695-a299-4d19-a985-df5ed70b9e60", "to": "88163a73-1490-48cc-b055-d53e5fe99d0b", "width": 1}, {"arrows": "to", "from": "73793695-a299-4d19-a985-df5ed70b9e60", "to": "2fb7c30e-f608-45f8-b67c-43c02f0addd6", "width": 1}, {"arrows": "to", "from": "73793695-a299-4d19-a985-df5ed70b9e60", "to": "3d51cb31-b39e-4f3b-8146-73f9d8f7e327", "width": 1}, {"arrows": "to", "from": "73793695-a299-4d19-a985-df5ed70b9e60", "to": "b2f28454-5688-4bb1-aa2b-9cadbda50d54", "width": 1}, {"arrows": "to", "from": "73793695-a299-4d19-a985-df5ed70b9e60", "to": "9f102aa6-8425-4de3-a919-0bce25670e59", "width": 1}, {"arrows": "to", "from": "73793695-a299-4d19-a985-df5ed70b9e60", "to": "0eab0153-687b-4c37-8167-8ae98ed2fa67", "width": 1}, {"arrows": "to", "from": "74a4dfea-eb23-48ca-8da1-f11489496218", "to": "93a7eb63-8099-496b-92c0-57608e9ee333", "width": 1}, {"arrows": "to", "from": "74a4dfea-eb23-48ca-8da1-f11489496218", "to": "5e99affe-9087-47e7-bb6e-de90eb0551f5", "width": 1}, {"arrows": "to", "from": "74a4dfea-eb23-48ca-8da1-f11489496218", "to": "e6961618-e99d-4fb8-9200-87ae0c39eeb3", "width": 1}, {"arrows": "to", "from": "74a4dfea-eb23-48ca-8da1-f11489496218", "to": "b6018589-9c19-4ee1-a7cf-573daba68e96", "width": 1}, {"arrows": "to", "from": "74a4dfea-eb23-48ca-8da1-f11489496218", "to": "88163a73-1490-48cc-b055-d53e5fe99d0b", "width": 1}, {"arrows": "to", "from": "74a4dfea-eb23-48ca-8da1-f11489496218", "to": "2fb7c30e-f608-45f8-b67c-43c02f0addd6", "width": 1}, {"arrows": "to", "from": "74a4dfea-eb23-48ca-8da1-f11489496218", "to": "3d51cb31-b39e-4f3b-8146-73f9d8f7e327", "width": 1}, {"arrows": "to", "from": "74a4dfea-eb23-48ca-8da1-f11489496218", "to": "b2f28454-5688-4bb1-aa2b-9cadbda50d54", "width": 1}, {"arrows": "to", "from": "74a4dfea-eb23-48ca-8da1-f11489496218", "to": "9f102aa6-8425-4de3-a919-0bce25670e59", "width": 1}, {"arrows": "to", "from": "74a4dfea-eb23-48ca-8da1-f11489496218", "to": "0eab0153-687b-4c37-8167-8ae98ed2fa67", "width": 1}, {"arrows": "to", "from": "93a7eb63-8099-496b-92c0-57608e9ee333", "to": "5e99affe-9087-47e7-bb6e-de90eb0551f5", "width": 1}, {"arrows": "to", "from": "93a7eb63-8099-496b-92c0-57608e9ee333", "to": "e6961618-e99d-4fb8-9200-87ae0c39eeb3", "width": 1}, {"arrows": "to", "from": "93a7eb63-8099-496b-92c0-57608e9ee333", "to": "b6018589-9c19-4ee1-a7cf-573daba68e96", "width": 1}, {"arrows": "to", "from": "93a7eb63-8099-496b-92c0-57608e9ee333", "to": "88163a73-1490-48cc-b055-d53e5fe99d0b", "width": 1}, {"arrows": "to", "from": "93a7eb63-8099-496b-92c0-57608e9ee333", "to": "2fb7c30e-f608-45f8-b67c-43c02f0addd6", "width": 1}, {"arrows": "to", "from": "93a7eb63-8099-496b-92c0-57608e9ee333", "to": "3d51cb31-b39e-4f3b-8146-73f9d8f7e327", "width": 1}, {"arrows": "to", "from": "93a7eb63-8099-496b-92c0-57608e9ee333", "to": "b2f28454-5688-4bb1-aa2b-9cadbda50d54", "width": 1}, {"arrows": "to", "from": "93a7eb63-8099-496b-92c0-57608e9ee333", "to": "9f102aa6-8425-4de3-a919-0bce25670e59", "width": 1}, {"arrows": "to", "from": "93a7eb63-8099-496b-92c0-57608e9ee333", "to": "0eab0153-687b-4c37-8167-8ae98ed2fa67", "width": 1}, {"arrows": "to", "from": "5e99affe-9087-47e7-bb6e-de90eb0551f5", "to": "e6961618-e99d-4fb8-9200-87ae0c39eeb3", "width": 1}, {"arrows": "to", "from": "5e99affe-9087-47e7-bb6e-de90eb0551f5", "to": "b6018589-9c19-4ee1-a7cf-573daba68e96", "width": 1}, {"arrows": "to", "from": "5e99affe-9087-47e7-bb6e-de90eb0551f5", "to": "88163a73-1490-48cc-b055-d53e5fe99d0b", "width": 1}, {"arrows": "to", "from": "5e99affe-9087-47e7-bb6e-de90eb0551f5", "to": "2fb7c30e-f608-45f8-b67c-43c02f0addd6", "width": 1}, {"arrows": "to", "from": "5e99affe-9087-47e7-bb6e-de90eb0551f5", "to": "3d51cb31-b39e-4f3b-8146-73f9d8f7e327", "width": 1}, {"arrows": "to", "from": "5e99affe-9087-47e7-bb6e-de90eb0551f5", "to": "b2f28454-5688-4bb1-aa2b-9cadbda50d54", "width": 1}, {"arrows": "to", "from": "5e99affe-9087-47e7-bb6e-de90eb0551f5", "to": "9f102aa6-8425-4de3-a919-0bce25670e59", "width": 1}, {"arrows": "to", "from": "5e99affe-9087-47e7-bb6e-de90eb0551f5", "to": "0eab0153-687b-4c37-8167-8ae98ed2fa67", "width": 1}, {"arrows": "to", "from": "e6961618-e99d-4fb8-9200-87ae0c39eeb3", "to": "b6018589-9c19-4ee1-a7cf-573daba68e96", "width": 1}, {"arrows": "to", "from": "e6961618-e99d-4fb8-9200-87ae0c39eeb3", "to": "88163a73-1490-48cc-b055-d53e5fe99d0b", "width": 1}, {"arrows": "to", "from": "e6961618-e99d-4fb8-9200-87ae0c39eeb3", "to": "2fb7c30e-f608-45f8-b67c-43c02f0addd6", "width": 1}, {"arrows": "to", "from": "e6961618-e99d-4fb8-9200-87ae0c39eeb3", "to": "3d51cb31-b39e-4f3b-8146-73f9d8f7e327", "width": 1}, {"arrows": "to", "from": "e6961618-e99d-4fb8-9200-87ae0c39eeb3", "to": "b2f28454-5688-4bb1-aa2b-9cadbda50d54", "width": 1}, {"arrows": "to", "from": "e6961618-e99d-4fb8-9200-87ae0c39eeb3", "to": "9f102aa6-8425-4de3-a919-0bce25670e59", "width": 1}, {"arrows": "to", "from": "e6961618-e99d-4fb8-9200-87ae0c39eeb3", "to": "0eab0153-687b-4c37-8167-8ae98ed2fa67", "width": 1}, {"arrows": "to", "from": "b6018589-9c19-4ee1-a7cf-573daba68e96", "to": "88163a73-1490-48cc-b055-d53e5fe99d0b", "width": 1}, {"arrows": "to", "from": "b6018589-9c19-4ee1-a7cf-573daba68e96", "to": "2fb7c30e-f608-45f8-b67c-43c02f0addd6", "width": 1}, {"arrows": "to", "from": "b6018589-9c19-4ee1-a7cf-573daba68e96", "to": "3d51cb31-b39e-4f3b-8146-73f9d8f7e327", "width": 1}, {"arrows": "to", "from": "b6018589-9c19-4ee1-a7cf-573daba68e96", "to": "b2f28454-5688-4bb1-aa2b-9cadbda50d54", "width": 1}, {"arrows": "to", "from": "b6018589-9c19-4ee1-a7cf-573daba68e96", "to": "9f102aa6-8425-4de3-a919-0bce25670e59", "width": 1}, {"arrows": "to", "from": "b6018589-9c19-4ee1-a7cf-573daba68e96", "to": "0eab0153-687b-4c37-8167-8ae98ed2fa67", "width": 1}, {"arrows": "to", "from": "88163a73-1490-48cc-b055-d53e5fe99d0b", "to": "2fb7c30e-f608-45f8-b67c-43c02f0addd6", "width": 1}, {"arrows": "to", "from": "88163a73-1490-48cc-b055-d53e5fe99d0b", "to": "3d51cb31-b39e-4f3b-8146-73f9d8f7e327", "width": 1}, {"arrows": "to", "from": "88163a73-1490-48cc-b055-d53e5fe99d0b", "to": "b2f28454-5688-4bb1-aa2b-9cadbda50d54", "width": 1}, {"arrows": "to", "from": "88163a73-1490-48cc-b055-d53e5fe99d0b", "to": "9f102aa6-8425-4de3-a919-0bce25670e59", "width": 1}, {"arrows": "to", "from": "88163a73-1490-48cc-b055-d53e5fe99d0b", "to": "0eab0153-687b-4c37-8167-8ae98ed2fa67", "width": 1}, {"arrows": "to", "from": "2fb7c30e-f608-45f8-b67c-43c02f0addd6", "to": "3d51cb31-b39e-4f3b-8146-73f9d8f7e327", "width": 1}, {"arrows": "to", "from": "2fb7c30e-f608-45f8-b67c-43c02f0addd6", "to": "b2f28454-5688-4bb1-aa2b-9cadbda50d54", "width": 1}, {"arrows": "to", "from": "2fb7c30e-f608-45f8-b67c-43c02f0addd6", "to": "9f102aa6-8425-4de3-a919-0bce25670e59", "width": 1}, {"arrows": "to", "from": "2fb7c30e-f608-45f8-b67c-43c02f0addd6", "to": "0eab0153-687b-4c37-8167-8ae98ed2fa67", "width": 1}, {"arrows": "to", "from": "3d51cb31-b39e-4f3b-8146-73f9d8f7e327", "to": "b2f28454-5688-4bb1-aa2b-9cadbda50d54", "width": 1}, {"arrows": "to", "from": "3d51cb31-b39e-4f3b-8146-73f9d8f7e327", "to": "9f102aa6-8425-4de3-a919-0bce25670e59", "width": 1}, {"arrows": "to", "from": "3d51cb31-b39e-4f3b-8146-73f9d8f7e327", "to": "0eab0153-687b-4c37-8167-8ae98ed2fa67", "width": 1}, {"arrows": "to", "from": "b2f28454-5688-4bb1-aa2b-9cadbda50d54", "to": "9f102aa6-8425-4de3-a919-0bce25670e59", "width": 1}, {"arrows": "to", "from": "b2f28454-5688-4bb1-aa2b-9cadbda50d54", "to": "0eab0153-687b-4c37-8167-8ae98ed2fa67", "width": 1}, {"arrows": "to", "from": "9f102aa6-8425-4de3-a919-0bce25670e59", "to": "0eab0153-687b-4c37-8167-8ae98ed2fa67", "width": 1}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {
+    "configure": {
+        "enabled": false
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "enabled": true,
+        "forceAtlas2Based": {
+            "avoidOverlap": 0,
+            "centralGravity": 0.01,
+            "damping": 0.4,
+            "gravitationalConstant": -50,
+            "springConstant": 0.08,
+            "springLength": 100
+        },
+        "solver": "forceAtlas2Based",
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

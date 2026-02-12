@@ -1,0 +1,164 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script src="lib/bindings/utils.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 700px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"Alert Description": "KAFKA-NETCOMPASS-BrokerID-0_BROKER_NETWORK_THROUGHPUT_IN is over the limits 1 or 2 (Value = 3128.0 | Limit 1 = 65.00 | Limit 2 = 75.00) - SmartOSS Id: 082b4ca3-ac4f-4554-8929-f3d6b53173e3", "Alert Severity": 1, "Alert Type": "KAFKA_BROKER_NETWORK_THROUGHPUT_IN", "First Occurrence": "2025-11-27T14:50:05.017633", "Last Occurrence": "2025-11-27T14:50:05.017633", "Node ID": "01f2097e-b3a5-441c-92b4-f3b84b74fbd2", "Node Name": "splab-vmntc-kfk01", "color": "yellow", "id": "2902a995-c338-400d-95cc-dc347f6bc9e3", "index": 4, "label": "KAFKA_BROKER_NETWORK_THROUGHPUT_IN", "shape": "dot", "size": 10, "title": "Description: KAFKA-NETCOMPASS-BrokerID-0_BROKER_NETWORK_THROUGHPUT_IN is over the limits 1 or 2 (Value = 3128.0 | Limit 1 = 65.00 | Limit 2 = 75.00) - SmartOSS Id: 082b4ca3-ac4f-4554-8929-f3d6b53173e3"}, {"Alert Description": "KAFKA-NETCOMPASS-BrokerID-0_BYTES_IN_PER_BROKER is over the limits 1 or 2 (Value = 1876874.0 | Limit 1 = 65.00 | Limit 2 = 75.00) - SmartOSS Id: 14b9b343-5147-4cdd-9c58-91667b54adfe", "Alert Severity": 1, "Alert Type": "KAFKA_BYTES_IN_PER_BROKER", "First Occurrence": "2025-11-27T14:50:05.017633", "Last Occurrence": "2025-11-27T14:50:05.017633", "Node ID": "01f2097e-b3a5-441c-92b4-f3b84b74fbd2", "Node Name": "splab-vmntc-kfk01", "color": "yellow", "id": "3f014bb4-d921-4b26-8d28-a6284c662347", "index": 5, "label": "KAFKA_BYTES_IN_PER_BROKER", "shape": "dot", "size": 10, "title": "Description: KAFKA-NETCOMPASS-BrokerID-0_BYTES_IN_PER_BROKER is over the limits 1 or 2 (Value = 1876874.0 | Limit 1 = 65.00 | Limit 2 = 75.00) - SmartOSS Id: 14b9b343-5147-4cdd-9c58-91667b54adfe"}, {"Alert Description": "KAFKA-NETCOMPASS_MESSAGES_IN_PER_TOPIC is over the limits 1 or 2 (Value = 938.0 | Limit 1 = 65.00 | Limit 2 = 75.00) - SmartOSS Id: 48899419-11d0-4ef6-b4f0-65c58f298970", "Alert Severity": 1, "Alert Type": "KAFKA_ACTIVE_CONTROLLERS", "First Occurrence": "2025-11-27T15:00:05.013592", "Last Occurrence": "2025-11-27T15:00:05.013592", "Node ID": "01f2097e-b3a5-441c-92b4-f3b84b74fbd2", "Node Name": "splab-vmntc-kfk01", "color": "yellow", "id": "44c67bc8-0e9b-45ab-ad56-0885a8deb1d6", "index": 0, "label": "KAFKA_ACTIVE_CONTROLLERS", "shape": "dot", "size": 10, "title": "Description: KAFKA-NETCOMPASS_MESSAGES_IN_PER_TOPIC is over the limits 1 or 2 (Value = 938.0 | Limit 1 = 65.00 | Limit 2 = 75.00) - SmartOSS Id: 48899419-11d0-4ef6-b4f0-65c58f298970"}, {"Alert Description": "KAFKA-NETCOMPASS_BROKER_NETWORK_THROUGHPUT_IN is over the limits 1 or 2 (Value = 410998.0 | Limit 1 = 65.00 | Limit 2 = 75.00) - SmartOSS Id: 765d45a0-fb7d-41b3-9770-f505759eb2a0", "Alert Severity": 1, "Alert Type": "KAFKA_BROKER_NETWORK_THROUGHPUT_IN", "First Occurrence": "2025-11-27T15:00:05.013592", "Last Occurrence": "2025-11-27T15:10:05.231349", "Node ID": "01f2097e-b3a5-441c-92b4-f3b84b74fbd2", "Node Name": "splab-vmntc-kfk01", "color": "yellow", "id": "099d4cb4-c41e-4703-818e-eeec27d9dd2a", "index": 2, "label": "KAFKA_BROKER_NETWORK_THROUGHPUT_IN", "shape": "dot", "size": 10, "title": "Description: KAFKA-NETCOMPASS_BROKER_NETWORK_THROUGHPUT_IN is over the limits 1 or 2 (Value = 410998.0 | Limit 1 = 65.00 | Limit 2 = 75.00) - SmartOSS Id: 765d45a0-fb7d-41b3-9770-f505759eb2a0"}, {"Alert Description": "KAFKA-NETCOMPASS_BYTES_IN_PER_BROKER is over the limits 1 or 2 (Value = 246599023 | Limit 1 = 65.00 | Limit 2 = 75.00) - SmartOSS Id: ccac3fa7-05e5-495a-8fa0-00a558d9af0d", "Alert Severity": 1, "Alert Type": "KAFKA_BYTES_IN_PER_BROKER", "First Occurrence": "2025-11-27T15:00:05.013592", "Last Occurrence": "2025-11-27T15:10:05.231349", "Node ID": "01f2097e-b3a5-441c-92b4-f3b84b74fbd2", "Node Name": "splab-vmntc-kfk01", "color": "yellow", "id": "9343cd0c-f5cd-4baa-9e2a-fad2841d89f7", "index": 3, "label": "KAFKA_BYTES_IN_PER_BROKER", "shape": "dot", "size": 10, "title": "Description: KAFKA-NETCOMPASS_BYTES_IN_PER_BROKER is over the limits 1 or 2 (Value = 246599023 | Limit 1 = 65.00 | Limit 2 = 75.00) - SmartOSS Id: ccac3fa7-05e5-495a-8fa0-00a558d9af0d"}, {"Alert Description": "KAFKA-NETCOMPASS_JVM_MEMORY_USED is over the limits 1 or 2 (Value = 286568712 | Limit 1 = 65.00 | Limit 2 = 75.00) - SmartOSS Id: 417707ab-048a-4dfe-ae57-17df86d5b604", "Alert Severity": 1, "Alert Type": "KAFKA_JVM_MEMORY_USED", "First Occurrence": "2025-11-27T15:10:05.231349", "Last Occurrence": "2025-11-27T15:10:05.231349", "Node ID": "01f2097e-b3a5-441c-92b4-f3b84b74fbd2", "Node Name": "splab-vmntc-kfk01", "color": "yellow", "id": "b049bfc2-ff2b-435c-9611-b606bf3d8332", "index": 1, "label": "KAFKA_JVM_MEMORY_USED", "shape": "dot", "size": 10, "title": "Description: KAFKA-NETCOMPASS_JVM_MEMORY_USED is over the limits 1 or 2 (Value = 286568712 | Limit 1 = 65.00 | Limit 2 = 75.00) - SmartOSS Id: 417707ab-048a-4dfe-ae57-17df86d5b604"}]);
+                  edges = new vis.DataSet([{"arrows": "to", "from": "2902a995-c338-400d-95cc-dc347f6bc9e3", "to": "3f014bb4-d921-4b26-8d28-a6284c662347", "width": 1}, {"arrows": "to", "from": "44c67bc8-0e9b-45ab-ad56-0885a8deb1d6", "to": "099d4cb4-c41e-4703-818e-eeec27d9dd2a", "width": 1}, {"arrows": "to", "from": "44c67bc8-0e9b-45ab-ad56-0885a8deb1d6", "to": "9343cd0c-f5cd-4baa-9e2a-fad2841d89f7", "width": 1}, {"arrows": "to", "from": "099d4cb4-c41e-4703-818e-eeec27d9dd2a", "to": "9343cd0c-f5cd-4baa-9e2a-fad2841d89f7", "width": 1}, {"arrows": "to", "from": "099d4cb4-c41e-4703-818e-eeec27d9dd2a", "to": "b049bfc2-ff2b-435c-9611-b606bf3d8332", "width": 1}, {"arrows": "to", "from": "9343cd0c-f5cd-4baa-9e2a-fad2841d89f7", "to": "b049bfc2-ff2b-435c-9611-b606bf3d8332", "width": 1}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {
+    "configure": {
+        "enabled": false
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "enabled": true,
+        "forceAtlas2Based": {
+            "avoidOverlap": 0,
+            "centralGravity": 0.01,
+            "damping": 0.4,
+            "gravitationalConstant": -50,
+            "springConstant": 0.08,
+            "springLength": 100
+        },
+        "solver": "forceAtlas2Based",
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>
