@@ -1,4 +1,5 @@
 alarm-mon_env/
+venv/
 lib/
 
 .mon_env
