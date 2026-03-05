@@ -2,4 +2,6 @@ alarm-mon_env/
 venv/
 lib/
 
+data/raw/
+
 .mon_env

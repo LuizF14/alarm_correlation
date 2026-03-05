@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-class ClusterBase(ABC):
+class EmbeddingBase(ABC):
     @abstractmethod
-    def clusterize(self, data):
+    def embed(self, data):
         pass
