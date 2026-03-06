@@ -1,36 +1,41 @@
 import pandas as pd
 import networkx as nx
-from node2vec import Node2Vec
 
 from .pipeline_base import PipelineBase
 
 from ..preprocess.sequence_preprocessor import SequencePreprocessor
-from ..graphing.temporal_threshold import TemporalThreshold
+
+from ..graphing.graph_builder import GraphBuilder
+from ..graphing.node_strategy.alert_type_node import AlertTypeNode
+from ..graphing.connection_strategy.temporal_threshold import TemporalThreshold
+
 from ..embedding.node2vec_embedding import Node2VecEmbedding
 from ..clustering.hdbscan_embedding_clustering import HDBScanEmbeddingClustering
 
 class AlarmCorrelationV1(PipelineBase):
-    def run(self, data):
+    def __init__(self):
+        self.data_by_node = None
+        self.graphs_list = None
+        self.embedding_model = None
+        self.clusters = None
+
+    def train(self, data):
         preprocessor = SequencePreprocessor()
 
         data = preprocessor.select_features(data)
-        nodes_df = preprocessor.group_by(data)
+        self.data_by_node = preprocessor.group_by(data)
 
         threshold = pd.Timedelta(minutes=5)
-        graphs_list = []
-        temporal_threshold = TemporalThreshold(threshold=threshold)
-        for node_df in nodes_df:
-            graph = temporal_threshold.graph_by_key(node_df, 'Alert Type')
-            graphs_list.append(graph)
+        graph_builder = GraphBuilder(AlertTypeNode(), TemporalThreshold(threshold))
+        self.graphs_list = graph_builder.build_forEach(self.data_by_node)
 
-        entire_graph = nx.compose_all(graphs_list)
+        entire_graph = nx.compose_all(self.graphs_list)
         
-        embeder = Node2VecEmbedding()
-        model = embeder.embed(entire_graph)
-        nodes, embeddings = embeder.get_all_embeddings(model, entire_graph)
+        embeder = Node2VecEmbedding(entire_graph)
+        self.embedding_model = embeder.embed(entire_graph)
 
         clusterer = HDBScanEmbeddingClustering()
-        clusters = clusterer.clusterize(nodes, embeddings)
+        self.clusters = clusterer.clusterize(embeder.nodes, embeder.embeddings)
         
 
 
