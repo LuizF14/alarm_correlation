@@ -2,5 +2,5 @@ from abc import ABC, abstractmethod
 
 class PipelineBase(ABC):
     @abstractmethod
-    def run(self):
+    def train(self):
         pass

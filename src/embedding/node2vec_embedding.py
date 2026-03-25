@@ -15,13 +15,13 @@ class Node2VecEmbedding(EmbeddingBase):
         model_path = Path("data/models/alarm_correlation_v1.model")
 
         if model_path.exists() and not force_reload:
-            self.model = Word2Vec.load(model_path)
+            self.model = Word2Vec.load(str(model_path)) 
             return self.model
 
         node2vec = Node2Vec(self.graph, dimensions=64, walk_length=30, num_walks=200)
         self.model = node2vec.fit(window=10, min_count=1, batch_words=4)
 
-        self.model.save(model_path)
+        self.model.save(str(model_path))
         return self.model
 
     @property
