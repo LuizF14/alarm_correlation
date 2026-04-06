@@ -16,6 +16,59 @@ class SequencePreprocessor(PreprocessBase):
         data = data.dropna()
         return data
     
+    def clean_data(self, data):
+        smart_oss_id_pattern = r"\s*-\s*SmartOSS Id:.*$"
+        data["Alert Description"] = data['Alert Description'].str.replace(smart_oss_id_pattern, "", regex=True).str.strip()
+        relevant_columns = [
+            'Alert Type', 
+            # 'Alert Description', 
+            'Node ID'
+        ]
+
+        data = data.sort_values(by=relevant_columns + ['First Occurrence'])
+    
+        grouped_rows = []
+
+        for _, group in data.groupby(relevant_columns):
+            group = group.sort_values('First Occurrence')
+
+            current_start = None
+            current_end = None
+            base_row = None
+
+            for _, row in group.iterrows():
+                start = row['First Occurrence']
+                end = row['Last Occurrence']
+
+                if current_start is None or current_end is None or base_row is None:
+                    current_start = start
+                    current_end = end
+                    base_row = row.copy()
+                    continue
+
+                # verifica interseção
+                if start <= current_end:
+                    # merge do intervalo
+                    current_end = max(current_end, end)
+                else:
+                    new_row = base_row.copy()
+                    new_row['First Occurrence'] = current_start
+                    new_row['Last Occurrence'] = current_end
+                    grouped_rows.append(new_row)
+
+                    current_start = start
+                    current_end = end
+                    base_row = row.copy()
+
+            if current_start is not None and base_row is not None:
+                new_row = base_row.copy()
+                new_row['First Occurrence'] = current_start
+                new_row['Last Occurrence'] = current_end
+                grouped_rows.append(new_row)
+
+        return pd.DataFrame(grouped_rows)
+    
+
     def group_by(self, data, grouping_attribute='Node ID'):
-        by_node = [group_data.reset_index(drop=True) for group_name, group_data in data.groupby(grouping_attribute)]
+        by_node = {group_name: group_data.reset_index(drop=True) for group_name, group_data in data.groupby(grouping_attribute)}
         return by_node

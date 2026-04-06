@@ -15,7 +15,7 @@ from ..graphing.connection_strategy.cluster_and_temporal_based import ClusterAnd
 from ..embedding.node2vec_embedding import Node2VecEmbedding
 from ..clustering.hdbscan_embedding_clustering import HDBScanEmbeddingClustering
 
-class AlertTypeClusteringCorrelation(PipelineBase):
+class SignatureClusteringCorrelation(PipelineBase):
     @property
     def MODEL_NAME(self) -> str:
         return "alert_type_clustering_correlation"
@@ -30,7 +30,6 @@ class AlertTypeClusteringCorrelation(PipelineBase):
         preprocessor = SequencePreprocessor()
 
         data = preprocessor.select_features(data)
-        data = preprocessor.clean_data(data)
         self.data_by_node = preprocessor.group_by(data)
 
         threshold = pd.Timedelta(minutes=5)
@@ -44,27 +43,3 @@ class AlertTypeClusteringCorrelation(PipelineBase):
 
         clusterer = HDBScanEmbeddingClustering()
         self.clusters = clusterer.clusterize(embeder.nodes, embeder.embeddings)
-
-    def inference(self, data):
-        preprocessor = SequencePreprocessor()
-
-        data = preprocessor.select_features(data)
-        data = preprocessor.clean_data(data)
-
-        graph_builder = GraphBuilder(AlertInstanceNode(), ClusterAndTemporalBased(self.clusters))
-        return graph_builder.build(data)
-    
-    def test(self, data):
-        preprocessor = SequencePreprocessor()
-
-        data = preprocessor.select_features(data)
-        data = preprocessor.clean_data(data)
-        data_by_node = preprocessor.group_by(data)
-
-        graph_builder = GraphBuilder(AlertInstanceNode(), ClusterAndTemporalBased(self.clusters))
-        return graph_builder.build_forEach(data_by_node)
-
-
-        
-
-

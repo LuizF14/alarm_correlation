@@ -88,8 +88,8 @@
                   
 
                   // parsing and collecting nodes and edges from the python
-                  nodes = new vis.DataSet([{"Alert Description": "NAMESPACE_MEMORY_LIMIT is over the limits 1 or 2 or 3 (Value = 96.66 | Limit 1 = 65.00 | Limit 2 = 65.00 | Limit 3 = 80.00) - SmartOSS Id: 2ee8fdcd-eb3a-46b9-8071-ffd9df7ba5e8", "Alert Severity": 1, "Alert Type": "OPENSHIFT_CLUSTER_NAMESPACE_MEMORY_LIMIT_PERCENT", "First Occurrence": "2025-11-25T18:50:29.737020", "Last Occurrence": "2025-11-26T18:30:15.162578", "Node ID": "013801c5-3ecd-4549-9e61-2814e2f475b0", "Node Name": "SPO-OCP-DEV", "color": "yellow", "id": "5da0e5bb-803d-4164-a31a-e6e71d917d81", "index": 0, "label": "OPENSHIFT_CLUSTER_NAMESPACE_MEMORY_LIMIT_PERCENT", "shape": "dot", "size": 10, "title": "Description: NAMESPACE_MEMORY_LIMIT is over the limits 1 or 2 or 3 (Value = 96.66 | Limit 1 = 65.00 | Limit 2 = 65.00 | Limit 3 = 80.00) - SmartOSS Id: 2ee8fdcd-eb3a-46b9-8071-ffd9df7ba5e8"}]);
-                  edges = new vis.DataSet([]);
+                  nodes = new vis.DataSet([{"color": "#E6194B", "id": "SPARK_DAG_SCHEDULER_ALL_JOBS", "label": "SPARK_DAG_SCHEDULER_ALL_JOBS", "shape": "dot", "size": 10}, {"color": "#E6194B", "id": "SPARK_LIVE_LISTENER_BUS_NUMBER_OF_EVENTS", "label": "SPARK_LIVE_LISTENER_BUS_NUMBER_OF_EVENTS", "shape": "dot", "size": 10}, {"color": "#E6194B", "id": "SPARK_JVM_GARBAGE_COLLECTOR_YOUNG", "label": "SPARK_JVM_GARBAGE_COLLECTOR_YOUNG", "shape": "dot", "size": 10}, {"color": "#E6194B", "id": "SPARK_JVM_GARBAGE_COLLECTOR_OLD", "label": "SPARK_JVM_GARBAGE_COLLECTOR_OLD", "shape": "dot", "size": 10}]);
+                  edges = new vis.DataSet([{"arrows": "to", "from": "SPARK_DAG_SCHEDULER_ALL_JOBS", "to": "SPARK_LIVE_LISTENER_BUS_NUMBER_OF_EVENTS", "width": 1}, {"arrows": "to", "from": "SPARK_DAG_SCHEDULER_ALL_JOBS", "to": "SPARK_JVM_GARBAGE_COLLECTOR_YOUNG", "width": 1}, {"arrows": "to", "from": "SPARK_DAG_SCHEDULER_ALL_JOBS", "to": "SPARK_JVM_GARBAGE_COLLECTOR_OLD", "width": 1}, {"arrows": "to", "from": "SPARK_JVM_GARBAGE_COLLECTOR_YOUNG", "to": "SPARK_DAG_SCHEDULER_ALL_JOBS", "width": 1}, {"arrows": "to", "from": "SPARK_JVM_GARBAGE_COLLECTOR_YOUNG", "to": "SPARK_LIVE_LISTENER_BUS_NUMBER_OF_EVENTS", "width": 1}, {"arrows": "to", "from": "SPARK_JVM_GARBAGE_COLLECTOR_YOUNG", "to": "SPARK_JVM_GARBAGE_COLLECTOR_OLD", "width": 1}, {"arrows": "to", "from": "SPARK_LIVE_LISTENER_BUS_NUMBER_OF_EVENTS", "to": "SPARK_JVM_GARBAGE_COLLECTOR_YOUNG", "width": 1}, {"arrows": "to", "from": "SPARK_LIVE_LISTENER_BUS_NUMBER_OF_EVENTS", "to": "SPARK_DAG_SCHEDULER_ALL_JOBS", "width": 1}, {"arrows": "to", "from": "SPARK_LIVE_LISTENER_BUS_NUMBER_OF_EVENTS", "to": "SPARK_JVM_GARBAGE_COLLECTOR_OLD", "width": 1}]);
 
                   nodeColors = {};
                   allNodes = nodes.get({ returnType: "Object" });
@@ -122,11 +122,11 @@
         "enabled": true,
         "forceAtlas2Based": {
             "avoidOverlap": 0,
-            "centralGravity": 0.01,
-            "damping": 0.4,
-            "gravitationalConstant": -50,
-            "springConstant": 0.08,
-            "springLength": 100
+            "centralGravity": 0.005,
+            "damping": 0.9,
+            "gravitationalConstant": -30,
+            "springConstant": 0.05,
+            "springLength": 150
         },
         "solver": "forceAtlas2Based",
         "stabilization": {

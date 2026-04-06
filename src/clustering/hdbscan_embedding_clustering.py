@@ -10,7 +10,7 @@ class HDBScanEmbeddingClustering(ClusterBase):
         clusterer = hdbscan.HDBSCAN(metric='euclidean')
         labels = clusterer.fit_predict(embeddings_norm)
 
-        cluster_map = defaultdict(lambda: -1)
+        cluster_map = {}
         
         for key, label in zip(keys, labels):
             cluster_map[key] = int(label) 

@@ -10,9 +10,13 @@ from ..graphing.node_strategy.alert_type_node import AlertTypeNode
 from ..graphing.connection_strategy.temporal_threshold import TemporalThreshold
 
 class AlertTypeTimeCorrelation(PipelineBase):
+    @property
+    def MODEL_NAME(self) -> str:
+        return "alert_type_time_correlation"
+    
     def __init__(self):
         self.data_by_node = None
-        self.graphs_list = None
+        self.graphs = None
         self.embedding_model = None
         self.clusters = None
 
@@ -20,18 +24,9 @@ class AlertTypeTimeCorrelation(PipelineBase):
         preprocessor = SequencePreprocessor()
 
         data = preprocessor.select_features(data)
+        data = preprocessor.clean_data(data)
         self.data_by_node = preprocessor.group_by(data)
 
         threshold = pd.Timedelta(minutes=5)
         graph_builder = GraphBuilder(AlertTypeNode(), TemporalThreshold(threshold))
-        self.graphs_list = graph_builder.build_forEach(self.data_by_node)
-
-    def get_graph(self, node_name : str) -> nx.DiGraph:
-        if self.data_by_node is None or self.graphs_list is None:
-            raise RuntimeError("Model has not been trained yet")
-
-        for i, node_df in enumerate(self.data_by_node):
-            if node_name in node_df['Node Name'].values:
-                return self.graphs_list[i]
-            
-        raise ValueError(f"Node '{node_name}' não encontrado na base de dados.")
+        self.graphs = graph_builder.build_forEach(self.data_by_node)

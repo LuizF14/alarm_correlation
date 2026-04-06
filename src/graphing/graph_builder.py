@@ -14,10 +14,11 @@ class GraphBuilder():
 
         return graph
     
-    def build_forEach(self, df_list : list):
-        graphs_list = []
-        for df in df_list:
-            graph = self.build(df)
-            graphs_list.append(graph)
+    def build_forEach(self, df_dict : dict):
+        graphs_dict = {}
+        for node_id, node_df in df_dict.items():
+            graph = self.build(node_df)
+            
+            graphs_dict[node_id] = graph
 
-        return graphs_list
+        return graphs_dict

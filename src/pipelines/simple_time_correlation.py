@@ -10,28 +10,56 @@ from ..graphing.node_strategy.alert_instance_node import AlertInstanceNode
 from ..graphing.connection_strategy.temporal_threshold import TemporalThreshold
 
 class SimpleTimeCorrelation(PipelineBase):
+    @property
+    def MODEL_NAME(self) -> str:
+        return "simple_time_correlation"
+
     def __init__(self):
         self.data_by_node = None
-        self.graphs_list = None
-        self.embedding_model = None
-        self.clusters = None
+        self.graphs = None
 
-    def train(self, data):
+    def train(self, data, threshold=pd.Timedelta(minutes=5)):
         preprocessor = SequencePreprocessor()
 
         data = preprocessor.select_features(data)
+        data = preprocessor.clean_data(data)
         self.data_by_node = preprocessor.group_by(data)
 
-        threshold = pd.Timedelta(minutes=5)
         graph_builder = GraphBuilder(AlertInstanceNode(), TemporalThreshold(threshold))
-        self.graphs_list = graph_builder.build_forEach(self.data_by_node)
+        self.graphs = graph_builder.build_forEach(self.data_by_node)
 
-    def get_graph(self, node_name : str) -> nx.DiGraph:
-        if self.data_by_node is None or self.graphs_list is None:
-            raise RuntimeError("Model has not been trained yet")
+    @classmethod
+    def search_timedeltas(cls, data):
+        thresholds = [
+            pd.Timedelta(minutes=1),
+            pd.Timedelta(minutes=5),
+            pd.Timedelta(minutes=10),
+            pd.Timedelta(minutes=30)
+        ]
 
-        for i, node_df in enumerate(self.data_by_node):
-            if node_name in node_df['Node Name'].values:
-                return self.graphs_list[i]
-            
-        raise ValueError(f"Node '{node_name}' não encontrado na base de dados.")
+        results = {}
+        pipeline = SimpleTimeCorrelation()
+        for t in thresholds:
+            print(f"Testando threshold de: {t}")
+            pipeline.train(data, threshold=t)
+
+            graphs = pipeline.graphs
+
+            total_subgraphs = 0
+            total_nodes = 0
+            total_edges = 0
+
+            for g in graphs.values():
+                total_subgraphs += sum(1 for _ in nx.weakly_connected_components(g))
+                total_nodes += g.number_of_nodes()
+                total_edges += g.number_of_edges()
+
+            results[str(t)] = {
+                "subgraphs": total_subgraphs,
+                "nodes": total_nodes,
+                "edges": total_edges
+            }
+
+        return results
+
+
