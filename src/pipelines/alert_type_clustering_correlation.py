@@ -3,11 +3,11 @@ import networkx as nx
 
 from .pipeline_base import PipelineBase
 
-from ..preprocess.sequence_preprocessor import SequencePreprocessor
+from ..preprocess.active_preprocessor import SequencePreprocessor
 
 from ..graphing.graph_builder import GraphBuilder
 from ..graphing.node_strategy.alert_type_node import AlertTypeNode
-from ..graphing.connection_strategy.temporal_threshold import TemporalThreshold
+from ..graphing.connection_strategy.temporal_threshold_periods import TemporalThreshold
 
 from ..graphing.node_strategy.alert_instance_node import AlertInstanceNode
 from ..graphing.connection_strategy.cluster_and_temporal_based import ClusterAndTemporalBased
