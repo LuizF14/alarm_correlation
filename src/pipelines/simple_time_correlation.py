@@ -1,5 +1,7 @@
-import pandas as pd
-import networkx as nx
+import os
+import polars as pl
+
+from datetime import timedelta
 
 from .pipeline_base import PipelineBase
 
@@ -13,19 +15,33 @@ class SimpleTimeCorrelation(PipelineBase):
     @property
     def MODEL_NAME(self) -> str:
         return f"simple_time_correlation_{self.preprocessor.__class__.__name__.lower()}"
+    
+    @property
+    def EDGES_PATH(self) -> str:
+        return f"{self.BASE_PATH}/simple_time_correlation_{self.preprocessor.__class__.__name__.lower()}_edges/"
 
-    def __init__(self, preprocessor = ActivePreprocessor, connection_strategy=TemporalThresholdPeriods):
-        self.data_by_node = None
-        self.graphs = None
+    def __init__(self, preprocessor=ActivePreprocessor, connection_strategy=TemporalThresholdPeriods):
         self.preprocessor = preprocessor()
         self.connection_strategy = connection_strategy
 
-    def train(self, data, threshold=pd.Timedelta(minutes=5)):
+    def train(self, data, threshold=timedelta(minutes=5)):
+        os.makedirs(self.EDGES_PATH, exist_ok=True)
+
         data = self.preprocessor.select_features(data)
         data = self.preprocessor.clean_data(data)
-        self.data_by_node = self.preprocessor.group_by(data)
+        data = self.preprocessor.select_nodes(data)
 
-        graph_builder = GraphBuilder(AlertInstanceNode(), self.connection_strategy(threshold))
-        self.graphs = graph_builder.build_forEach(self.data_by_node)
+        data = data.collect()
 
+        graph_builder = GraphBuilder(
+            AlertInstanceNode(),
+            self.connection_strategy(threshold)
+        )
 
+        for i, node_df in enumerate(data.partition_by("Node ID")):
+            edges = graph_builder.build_edges(node_df)
+            if edges:
+                pl.DataFrame(edges, schema=["src", "dst"], orient='row')\
+                  .write_parquet(f"{self.EDGES_PATH}/part_{i}.parquet")
+
+            del node_df, edges

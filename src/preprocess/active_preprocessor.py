@@ -27,14 +27,3 @@ class ActivePreprocessor(PreprocessBase):
     
     def clean_data(self, data):
         return data.unique(subset=["Alert ID"], keep='first').drop_nulls()
-
-    def group_by(self, query, grouping_attribute='Node ID'):
-        query = query.sort([grouping_attribute, "First Occurrence"])
-        data = query.collect()
-
-        groups = data.partition_by(grouping_attribute, as_dict=True)
-
-        return {
-            key[0]: value
-            for key, value in groups.items()
-        }

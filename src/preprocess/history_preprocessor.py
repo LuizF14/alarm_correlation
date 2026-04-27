@@ -22,16 +22,16 @@ class HistoryPreprocessor(PreprocessBase):
             .drop_nulls()
         )
     
-    def clean_data(self, data):
-        return data.unique(subset=["Alert ID"], keep='first').drop_nulls()
-    
-    def group_by(self, query, grouping_attribute='Node ID'):
-        query = query.sort([grouping_attribute, "Alert Occurrence"])
-        data = query.collect()
+    def clean_data(self, query):
+        return query.unique(subset=["Alert ID"], keep='first').drop_nulls()
 
-        groups = data.partition_by(grouping_attribute, as_dict=True)
 
-        return {
-            key[0]: value
-            for key, value in groups.items()
-        }
+    def select_nodes(self, query):
+        valid_nodes = (
+            query.group_by("Node Name")
+            .agg(pl.col("Alert ID").n_unique().alias("n_alarmes"))
+            .filter(pl.col("n_alarmes") < 20000)
+            .select("Node Name")
+        )
+
+        return query.join(valid_nodes, on="Node Name", how="inner")
