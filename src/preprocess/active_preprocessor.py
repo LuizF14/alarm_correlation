@@ -1,9 +1,8 @@
 import polars as pl
 
-from .preprocess_base import PreprocessBase
-
-class ActivePreprocessor(PreprocessBase):
-    def select_features(self, query):
+class ActivePreprocessor:
+    @staticmethod
+    def select_features(query):
         cols_map = {
             'acal_cd_alarm_id': 'Alert ID',
             'acal_tx_alert_type': 'Alert Type',
@@ -25,5 +24,6 @@ class ActivePreprocessor(PreprocessBase):
             .drop_nulls()
         )
     
-    def clean_data(self, data):
+    @staticmethod
+    def clean_data(data):
         return data.unique(subset=["Alert ID"], keep='first').drop_nulls()

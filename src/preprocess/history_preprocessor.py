@@ -1,9 +1,8 @@
 import polars as pl
 
-from .preprocess_base import PreprocessBase
-
-class HistoryPreprocessor(PreprocessBase):
-    def select_features(self, query):
+class HistoryPreprocessor:
+    @staticmethod
+    def select_features(query):
         cols_map = {
             'alhi_cd_alarm_id': 'Alert ID',
             'alhi_tx_node': 'Node Name',
@@ -22,11 +21,12 @@ class HistoryPreprocessor(PreprocessBase):
             .drop_nulls()
         )
     
-    def clean_data(self, query):
+    @staticmethod
+    def clean_data(query):
         return query.unique(subset=["Alert ID"], keep='first').drop_nulls()
 
-
-    def select_nodes(self, query):
+    @staticmethod
+    def select_nodes(query):
         valid_nodes = (
             query.group_by("Node Name")
             .agg(pl.col("Alert ID").n_unique().alias("n_alarmes"))

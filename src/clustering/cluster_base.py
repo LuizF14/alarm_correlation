@@ -1,6 +1,0 @@
-from abc import ABC, abstractmethod
-
-class ClusterBase(ABC):
-    @abstractmethod
-    def clusterize(self, data):
-        pass

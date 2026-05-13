@@ -1,7 +1,8 @@
-alarm-mon_env/
+alarm-monitor/
 venv/
 lib/
 
 data/raw/
 
-.mon_env
+**/__pycache__/
+*.pyc
