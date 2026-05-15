@@ -6,8 +6,8 @@ from .correlation_strategy import CorrelationStrategy
 class TemporalThresholdEvents(CorrelationStrategy):
     name = "TemporalThresholdEvents"
 
-    def __init__(self, threshold: timedelta = timedelta(minutes=5)):
-        self.threshold = threshold
+    def __init__(self, threshold_minutes: int = 5):
+        self.threshold = timedelta(minutes=threshold_minutes)
 
     def prepare(self, node_df: pl.DataFrame) -> list[dict]:
         return (

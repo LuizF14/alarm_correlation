@@ -1,32 +1,56 @@
 import os
-import polars as pl
 
-from datetime import timedelta
+from src.graphing.temporal_threshold_events import TemporalThresholdEvents
+from src.preprocess.history_preprocessor import HistoryPreprocessor
+from src.preprocess.active_preprocessor import ActivePreprocessor
+from src.repository.alarm_graph_repository import AlarmGraphRepository
+from src.graphing.temporal_threshold_periods import TemporalThresholdPeriods
 
-from .pipeline_base import PipelineBase
+from tqdm.notebook import tqdm
 
-from ..preprocess.active_preprocessor import ActivePreprocessor
-
-class SimpleTimeCorrelationActive(PipelineBase):
-    def train(self, data, threshold=timedelta(minutes=5)):
+class SimpleTimeCorrelationActive():
+    @staticmethod
+    def train(data): 
+        graph_repo = AlarmGraphRepository(db_path=os.getenv("ACTIVE_DB_PATH"))
         data = ActivePreprocessor.select_features(data)
         data = ActivePreprocessor.clean_data(data)
-        # data = ActivePreprocessor.select_nodes(data)
 
         data = data.collect()
 
-        for i, node_df in enumerate(data.partition_by("Node ID")):
-            print(f"{node_df}")
+        strategy = TemporalThresholdPeriods(threshold_minutes=5)
+        try:
+            partitions = data.partition_by("Node ID")
+            for node_df in tqdm(partitions, desc="Processando nós", unit="nó", total=len(partitions)):
+                physical_node_id = node_df["Node ID"][0]
+                graph_repo.save_alarm_nodes(node_df, physical_node_id)
 
-        # graph_builder = GraphBuilder(
-        #     AlertInstanceNode(),
-        #     self.connection_strategy(threshold)
-        # )
+                rows = strategy.prepare(node_df)
+                edge_gen = strategy.correlate(rows)
+                graph_repo.save_temporal_edges(edge_gen, physical_node_id)
 
-        # for i, node_df in enumerate(data.partition_by("Node ID")):
-        #     edges = graph_builder.build_edges(node_df)
-        #     if edges:
-        #         pl.DataFrame(edges, schema=["src", "dst"], orient='row')\
-        #           .write_parquet(f"{self.EDGES_PATH}/part_{i}.parquet")
+        finally:
+            graph_repo.close()
 
-        #     del node_df, edges
+class SimpleTimeCorrelationHistory():
+    @staticmethod
+    def train(data): 
+        graph_repo = AlarmGraphRepository(db_path=os.getenv("HISTORY_DB_PATH"), batch_size=10_000_000)
+        data = HistoryPreprocessor.select_features(data)
+        data = HistoryPreprocessor.clean_data(data)
+
+        data = data.collect()
+
+        strategy = TemporalThresholdEvents(threshold_minutes=5)
+        try:
+            partitions = data.partition_by("Node ID")
+            for node_df in tqdm(partitions, desc="Processando nós", unit="nó", total=len(partitions), leave=True):
+                physical_node_id = node_df["Node ID"][0]
+                graph_repo.save_alarm_nodes(node_df, physical_node_id)
+
+                rows = strategy.prepare(node_df)
+                edge_gen = strategy.correlate(rows)
+                graph_repo.save_temporal_edges(edge_gen, physical_node_id)
+
+        finally:
+            graph_repo.close()
+        

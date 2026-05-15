@@ -1,4 +1,4 @@
-alarm-monitor/
+alarm-correlation-venv/
 venv/
 lib/
 
@@ -6,3 +6,5 @@ data/raw/
 
 **/__pycache__/
 *.pyc
+
+volumes/
