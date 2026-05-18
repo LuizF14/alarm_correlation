@@ -1,6 +1,6 @@
+import os
 import duckdb
 import polars as pl
-from tqdm.notebook import tqdm
 from itertools import islice
 
 from ..graphing.correlation_strategy import CorrelationStrategy
@@ -8,7 +8,7 @@ from ..graphing.correlation_strategy import CorrelationStrategy
 
 class AlarmGraphRepository:
     def __init__(self, db_path: str, batch_size: int = 50_000):
-        self.con = duckdb.connect(db_path)
+        self.con = duckdb.connect(f"{os.getenv("VOLUMES_PATH")}{db_path}")
         self.batch_size = batch_size
         self._init_schema()
 
@@ -47,36 +47,40 @@ class AlarmGraphRepository:
         """)
         
     def save_temporal_edges(self, edge_gen: CorrelationStrategy, physical_node_id: str):
-        with tqdm(desc=f"  edges [{physical_node_id}]", unit="edges", leave=False) as pbar:
-            while True:
-                chunk = list(islice(edge_gen, self.batch_size))
-                if not chunk:
-                    break
-                try:
-                    chunk_df = pl.DataFrame(chunk).with_columns(
-                        pl.lit(physical_node_id).alias("node_id")
-                    )
-                    self.con.execute("""
-                        INSERT INTO alarm_edges
-                        SELECT src_id, dst_id, node_id, algorithm FROM chunk_df
-                    """)
-                    pbar.update(len(chunk))
-                finally:
-                    del chunk
-                    del chunk_df
+        while True:
+            chunk = list(islice(edge_gen, self.batch_size))
+            if not chunk:
+                break
+            try:
+                chunk_df = pl.DataFrame(chunk).with_columns(
+                    pl.lit(physical_node_id).alias("node_id")
+                )
+                self.con.execute("""
+                    INSERT INTO alarm_edges
+                    SELECT src_id, dst_id, node_id, algorithm FROM chunk_df
+                """)
+            finally:
+                del chunk
+                del chunk_df
 
-    def clear_algorithm(self, algorithm: str, db: str = "active"):
+    def clear_algorithm(self, algorithm: str):
         deleted = self.con.execute("""
             DELETE FROM alarm_edges WHERE algorithm = ?
             RETURNING count(*) as n
         """, [algorithm]).fetchone()
-        print(f"[{db}] algoritmo '{algorithm}': {deleted[0] if deleted else 0} arestas removidas")
+        print(f"[algoritmo '{algorithm}': {deleted[0] if deleted else 0} arestas removidas")
 
 
-    def get_edges_by_physical_node(self, physical_node_id: str, db: str = "active") -> list[tuple]:
-        return self.con.execute("""
+    def get_edges_by_physical_node(self, physical_node_id: str):
+        relation = self.con.execute("""
             SELECT src_id, dst_id FROM alarm_edges WHERE node_id = ?
-        """, [physical_node_id]).fetchall()
+        """, [physical_node_id])
+        
+        while True:
+            chunk = relation.fetchmany(self.batch_size)
+            if not chunk:
+                break
+            yield from chunk
 
     def get_nodes_by_physical_node(self, physical_node_id: str) -> pl.DataFrame:
         return self.con.execute("""
