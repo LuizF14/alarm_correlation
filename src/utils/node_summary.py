@@ -72,8 +72,7 @@ def extract_general_metrics(df: pl.DataFrame) -> pl.DataFrame:
     })
     return metrics
     
-def node_summary(db_path: str):
-    graph_repo = AlarmGraphRepository(db_path)
+def node_summary(graph_repo: AlarmGraphRepository):
     df = search_graph(graph_repo)
     df = add_stats_columns(df) 
     general_metrics = extract_general_metrics(df)

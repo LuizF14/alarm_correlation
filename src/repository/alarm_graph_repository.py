@@ -17,6 +17,10 @@ class AlarmGraphRepository:
             CREATE TABLE IF NOT EXISTS alarm_nodes (
                 alert_id    VARCHAR,
                 node_id     VARCHAR,
+                alert_type  VARCHAR,
+                start_time  DATE,
+                end_time    DATE,
+                incident    INTEGER,
                 PRIMARY KEY (alert_id, node_id)
             )
         """)
@@ -24,8 +28,7 @@ class AlarmGraphRepository:
             CREATE TABLE IF NOT EXISTS alarm_edges (
                 src_id      VARCHAR,
                 dst_id      VARCHAR,
-                node_id     VARCHAR,
-                algorithm   VARCHAR
+                node_id     VARCHAR
             )
         """)
         self.con.execute("""
@@ -36,14 +39,24 @@ class AlarmGraphRepository:
         self.con.close()
 
     def save_alarm_nodes(self, node_df: pl.DataFrame, physical_node_id: str):
+        if "First Occurrence" in node_df.columns:
+            start_time = node_df["First Occurrence"]
+            end_time = node_df["Last Occurrence"]
+        elif "Alert Occurrence" in node_df.columns:
+            start_time = node_df["Alert Occurrence"]
+            end_time = None
+        
         df = pl.DataFrame({
             "alert_id": node_df["Alert ID"],
             "node_id": physical_node_id,
+            "alert_type": node_df["Alert Type"],
+            "start_time": start_time,
+            "end_time": end_time
         })
 
         self.con.execute("""
-            INSERT OR IGNORE INTO alarm_nodes (alert_id, node_id)
-            SELECT alert_id, node_id FROM df
+        INSERT OR IGNORE INTO alarm_nodes (alert_id, node_id, alert_type, start_time, end_time)
+        SELECT alert_id, node_id, alert_type, start_time, end_time FROM df
         """)
         
     def save_temporal_edges(self, edge_gen: CorrelationStrategy, physical_node_id: str):
@@ -57,19 +70,11 @@ class AlarmGraphRepository:
                 )
                 self.con.execute("""
                     INSERT INTO alarm_edges
-                    SELECT src_id, dst_id, node_id, algorithm FROM chunk_df
+                    SELECT src_id, dst_id, node_id FROM chunk_df
                 """)
             finally:
                 del chunk
                 del chunk_df
-
-    def clear_algorithm(self, algorithm: str):
-        deleted = self.con.execute("""
-            DELETE FROM alarm_edges WHERE algorithm = ?
-            RETURNING count(*) as n
-        """, [algorithm]).fetchone()
-        print(f"[algoritmo '{algorithm}': {deleted[0] if deleted else 0} arestas removidas")
-
 
     def get_edges_by_physical_node(self, physical_node_id: str):
         relation = self.con.execute("""
@@ -102,3 +107,18 @@ class AlarmGraphRepository:
             FROM alarm_edges
             GROUP BY node_id
         """).pl()
+        
+    def preview_nodes(self, limit=20) -> pl.DataFrame:
+        df_nodes = self.con.execute(f"SELECT * FROM alarm_nodes LIMIT {limit}").pl()
+        return df_nodes
+    
+    def preview_edges(self, limit=20) -> pl.DataFrame:
+        df_edges = self.con.execute(f"SELECT * FROM alarm_edges LIMIT {limit}").pl()
+        return df_edges
+
+    def write_down_incidents(self, incident_id: int, alert_ids: list):
+        self.con.execute("""
+            UPDATE alarm_nodes 
+            SET incident = ? 
+            WHERE alert_id = ANY(?)
+        """, [incident_id, alert_ids])
