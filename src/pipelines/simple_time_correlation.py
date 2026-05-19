@@ -31,7 +31,6 @@ class SimpleTimeCorrelationActive(CorrelationBase):
 class SimpleTimeCorrelationHistory(CorrelationBase):
     @staticmethod
     def train(data, graph_repo: AlarmGraphRepository, threshold_minutes=5): 
-        # graph_repo = AlarmGraphRepository(db_path, batch_size=35_000_000)
         data = HistoryPreprocessor.select_features(data)
         data = HistoryPreprocessor.clean_data(data)
 

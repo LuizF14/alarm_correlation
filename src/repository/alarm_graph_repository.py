@@ -7,7 +7,7 @@ from ..graphing.correlation_strategy import CorrelationStrategy
 
 
 class AlarmGraphRepository:
-    def __init__(self, db_path: str, batch_size: int = 50_000):
+    def __init__(self, db_path: str, batch_size: int = 35_000_000):
         self.con = duckdb.connect(f"{os.getenv("VOLUMES_PATH")}{db_path}")
         self.batch_size = batch_size
         self._init_schema()
@@ -33,6 +33,9 @@ class AlarmGraphRepository:
         """)
         self.con.execute("""
             CREATE INDEX IF NOT EXISTS idx_edges_node_id ON alarm_edges (node_id)
+        """)
+        self.con.execute("""
+            CREATE INDEX IF NOT EXISTS idx_nodes_alert_id ON alarm_nodes (alert_id)
         """)
 
     def close(self):
@@ -108,6 +111,15 @@ class AlarmGraphRepository:
             GROUP BY node_id
         """).pl()
         
+    def get_incident_counts_by_physical_node(self) -> pl.DataFrame:
+        return self.con.execute("""
+            SELECT 
+                node_id, 
+                COUNT(DISTINCT incident) as num_subgraphs
+            FROM alarm_nodes
+            GROUP BY node_id     
+        """).pl()
+    
     def preview_nodes(self, limit=20) -> pl.DataFrame:
         df_nodes = self.con.execute(f"SELECT * FROM alarm_nodes LIMIT {limit}").pl()
         return df_nodes
@@ -116,9 +128,26 @@ class AlarmGraphRepository:
         df_edges = self.con.execute(f"SELECT * FROM alarm_edges LIMIT {limit}").pl()
         return df_edges
 
-    def write_down_incidents(self, incident_id: int, alert_ids: list):
+    def write_down_incidents(self, incidents: list[tuple[int, list[str]]]):
+        rows_incident_id = []
+        rows_alert_id = []
+        
+        for incident_id, alert_ids in incidents:
+            for alert_id in alert_ids:
+                rows_incident_id.append(incident_id)
+                rows_alert_id.append(alert_id)
+        
+        if not rows_alert_id:
+            return
+        
+        df = pl.DataFrame({
+            "incident_id": pl.Series(rows_incident_id, dtype=pl.Int32),
+            "alert_id": pl.Series(rows_alert_id, dtype=pl.String),
+        })
+        
         self.con.execute("""
-            UPDATE alarm_nodes 
-            SET incident = ? 
-            WHERE alert_id = ANY(?)
-        """, [incident_id, alert_ids])
+            UPDATE alarm_nodes
+            SET incident = df.incident_id
+            FROM df
+            WHERE alarm_nodes.alert_id = df.alert_id
+        """)

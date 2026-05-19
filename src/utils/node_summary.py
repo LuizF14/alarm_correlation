@@ -7,27 +7,14 @@ from src.repository.alarm_graph_repository import AlarmGraphRepository
 def search_graph(graph_repo: AlarmGraphRepository) -> pl.DataFrame:
     node_counts = graph_repo.get_node_counts_by_physical_node()
     edge_counts = graph_repo.get_edge_counts_by_physical_node()
-
-    all_node_ids = node_counts["node_id"].to_list()
-    wcc_rows = []
-
-    for physical_node_id in tqdm(all_node_ids, desc="Calculando WCC", unit="nó"):
-        edge_generator = graph_repo.get_edges_by_physical_node(physical_node_id)
-
-        G = ig.Graph.TupleList(edge_generator, directed=True)
-        num_wcc = len(G.connected_components(mode="weak"))
-
-        wcc_rows.append({"node_id": physical_node_id, "num_subgraphs": num_wcc})
-        del G
-
-    wcc_df = pl.DataFrame(wcc_rows)
+    subgraphs_counts = graph_repo.get_incident_counts_by_physical_node()
 
     return (
         node_counts
         .join(edge_counts, on="node_id", how="left")
-        .join(wcc_df, on="node_id", how="left")
+        .join(subgraphs_counts, on="node_id", how="left")
         .fill_null(0)
-        .sort("num_edges", descending=True)
+        .sort("num_subgraphs", descending=True)
     )
     
 def add_stats_columns(base_df: pl.DataFrame) -> pl.DataFrame:

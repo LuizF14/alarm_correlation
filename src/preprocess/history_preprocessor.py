@@ -7,7 +7,7 @@ class HistoryPreprocessor:
             'alhi_cd_alarm_id': 'Alert ID',
             'alhi_tx_node': 'Node Name',
             'alhi_cd_node_id': 'Node ID',
-            'alhi_tx_alert_type': 'Alerty Type',
+            'alhi_tx_alert_type': 'Alert Type',
             'alhi_tx_description': 'Alert Description',
             'alhi_dt_occurrence': 'Alert Occurrence'
         }
