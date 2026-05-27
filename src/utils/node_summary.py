@@ -55,6 +55,7 @@ def extract_general_metrics(df: pl.DataFrame) -> pl.DataFrame:
     metrics = pl.DataFrame({
         "media_alarmes_por_incidente": [df["Média de Alarmes por Incidente"].mean()],
         "media_incidentes_por_node": [df["Total de Incidentes"].mean()],
+        "media_correlacoes_por_node": [df["Total de Correlações"].mean()],
         "densidade_media_nodes": [df["Densidade"].mean()]
     })
     return metrics

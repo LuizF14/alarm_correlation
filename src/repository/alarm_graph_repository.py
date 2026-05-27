@@ -8,7 +8,8 @@ from ..graphing.correlation_strategy import CorrelationStrategy
 
 class AlarmGraphRepository:
     def __init__(self, db_path: str, batch_size: int = 35_000_000):
-        self.con = duckdb.connect(f"{os.getenv("VOLUMES_PATH")}{db_path}")
+        self.path = f"{os.getenv("VOLUMES_PATH")}{db_path}"
+        self.con = duckdb.connect(self.path)
         self.batch_size = batch_size
         self._init_schema()
 
@@ -16,12 +17,11 @@ class AlarmGraphRepository:
         self.con.execute("""
             CREATE TABLE IF NOT EXISTS alarm_nodes (
                 alert_id    VARCHAR,
-                node_id     VARCHAR,
-                alert_type  VARCHAR,
-                start_time  DATE,
-                end_time    DATE,
                 incident    INTEGER,
-                PRIMARY KEY (alert_id, node_id)
+                alert_type  VARCHAR,
+                start_time  DATETIME,
+                end_time    DATETIME,
+                node_id     VARCHAR
             )
         """)
         self.con.execute("""
@@ -31,12 +31,12 @@ class AlarmGraphRepository:
                 node_id     VARCHAR
             )
         """)
-        self.con.execute("""
-            CREATE INDEX IF NOT EXISTS idx_edges_node_id ON alarm_edges (node_id)
-        """)
-        self.con.execute("""
-            CREATE INDEX IF NOT EXISTS idx_nodes_alert_id ON alarm_nodes (alert_id)
-        """)
+        # self.con.execute("""
+        #     CREATE INDEX IF NOT EXISTS idx_edges_node_id ON alarm_edges (node_id)
+        # """)
+        # self.con.execute("""
+        #     CREATE INDEX IF NOT EXISTS idx_nodes_alert_id ON alarm_nodes (alert_id)
+        # """)
 
     def close(self):
         self.con.close()
@@ -47,19 +47,21 @@ class AlarmGraphRepository:
             end_time = node_df["Last Occurrence"]
         elif "Alert Occurrence" in node_df.columns:
             start_time = node_df["Alert Occurrence"]
-            end_time = None
-        
+            end_time = pl.Series("end_time", [None] * len(node_df), dtype=start_time.dtype)
+        else:
+            raise ValueError(f"Nenhuma coluna de tempo encontrada em: {node_df.columns}")
+
         df = pl.DataFrame({
-            "alert_id": node_df["Alert ID"],
-            "node_id": physical_node_id,
-            "alert_type": node_df["Alert Type"],
+            "alert_id":   node_df["Alert ID"].cast(pl.String),
+            "node_id":    pl.Series("node_id", [physical_node_id] * len(node_df), dtype=pl.String),
+            "alert_type": node_df["Alert Type"].cast(pl.String),
             "start_time": start_time,
-            "end_time": end_time
+            "end_time":   end_time
         })
 
         self.con.execute("""
-        INSERT OR IGNORE INTO alarm_nodes (alert_id, node_id, alert_type, start_time, end_time)
-        SELECT alert_id, node_id, alert_type, start_time, end_time FROM df
+            INSERT INTO alarm_nodes (alert_id, node_id, alert_type, start_time, end_time)
+            SELECT alert_id, node_id, alert_type, start_time, end_time FROM df
         """)
         
     def save_temporal_edges(self, edge_gen: CorrelationStrategy, physical_node_id: str):
@@ -151,3 +153,18 @@ class AlarmGraphRepository:
             FROM df
             WHERE alarm_nodes.alert_id = df.alert_id
         """)
+        
+    def delete_db(self) -> bool:
+        db_filename = self.con.execute("PRAGMA database_list").fetchall()[0][2]
+        
+        self.close()
+        
+        if db_filename and os.path.exists(db_filename):
+            os.remove(db_filename)
+        
+            wal_file = f"{db_filename}.wal"
+            if os.path.exists(wal_file):
+                os.remove(wal_file)
+                
+            return True
+        return False
