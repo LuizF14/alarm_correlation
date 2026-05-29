@@ -31,12 +31,12 @@ class AlarmGraphRepository:
                 node_id     VARCHAR
             )
         """)
-        # self.con.execute("""
-        #     CREATE INDEX IF NOT EXISTS idx_edges_node_id ON alarm_edges (node_id)
-        # """)
-        # self.con.execute("""
-        #     CREATE INDEX IF NOT EXISTS idx_nodes_alert_id ON alarm_nodes (alert_id)
-        # """)
+        self.con.execute("""
+            CREATE INDEX IF NOT EXISTS idx_edges_node_id ON alarm_edges (node_id)
+        """)
+        self.con.execute("""
+            CREATE INDEX IF NOT EXISTS idx_nodes_alert_id ON alarm_nodes (alert_id)
+        """)
 
     def close(self):
         self.con.close()
@@ -121,6 +121,14 @@ class AlarmGraphRepository:
             FROM alarm_nodes
             GROUP BY node_id     
         """).pl()
+        
+    def get_distinct_physical_nodes(self) -> pl.DataFrame:
+        return self.con.execute("""
+            SELECT
+                node_id
+            FROM alarm_nodes
+            GROUP BY node_id               
+        """).pl()
     
     def preview_nodes(self, limit=20) -> pl.DataFrame:
         df_nodes = self.con.execute(f"SELECT * FROM alarm_nodes LIMIT {limit}").pl()
@@ -153,6 +161,25 @@ class AlarmGraphRepository:
             FROM df
             WHERE alarm_nodes.alert_id = df.alert_id
         """)
+        
+    def get_incidents(self, physical_node_id: str | None = None) -> pl.DataFrame:
+        if physical_node_id is not None:
+            df = self.con.execute("""
+                SELECT incident, alert_id, alert_type, start_time, end_time, node_id
+                FROM alarm_nodes
+                WHERE incident IS NOT NULL
+                AND node_id = ?
+                ORDER BY incident, start_time
+            """, [physical_node_id]).pl()
+        else:
+            df = self.con.execute("""
+                SELECT incident, alert_id, alert_type, start_time, end_time, node_id
+                FROM alarm_nodes
+                WHERE incident IS NOT NULL
+                ORDER BY incident, start_time
+            """).pl()
+
+        return df.partition_by("incident", maintain_order=True)
         
     def delete_db(self) -> bool:
         db_filename = self.con.execute("PRAGMA database_list").fetchall()[0][2]

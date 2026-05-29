@@ -15,18 +15,14 @@ from src.utils.node_summary import node_summary
 
 
 def _evaluate_window(args):
-    algorithm_class, w, batch_size, parquet_dir = args  # recebe o path via args
-
-    partitions = [
-        pl.read_parquet(f)
-        for f in sorted(Path(parquet_dir).glob("*.parquet"))
-    ]
+    algorithm_class, w, batch_size, parquet_dir = args
 
     path = f"graph_{algorithm_class.__name__}_{w}"
     graph_repo = AlarmGraphRepository(path, batch_size=batch_size)
 
     try:
-        algorithm_class.internal_process(partitions, graph_repo, threshold_minutes=w, verbose=False)
+        parquet_files = sorted(Path(parquet_dir).glob("*.parquet"))
+        algorithm_class.internal_process_lazy(parquet_files, graph_repo, threshold_minutes=w, verbose=False)
         EnumerateIncidents.enumerate_data(graph_repo, verbose=False)
         summary, metrics = node_summary(graph_repo)
         return w, (summary, metrics), None
@@ -42,18 +38,11 @@ _TOTAL_BATCH_BUDGET = 20_000_000
 
 class SlidingWindowSearch:
     @staticmethod
-    def search(
-        algorithm: CorrelationBase,
-        data,
-        window_widths: list,
-        n_workers: int | None = None,
-    ):
-        partitions = algorithm.common_preprocess(data)
-
+    def search(algorithm, data, window_widths, n_workers=None):
         parquet_dir = tempfile.mkdtemp(prefix="sliding_window_")
         try:
-            for i, part in enumerate(partitions):
-                part.write_parquet(f"{parquet_dir}/{i:04d}.parquet")
+            # salva partições no disco — nunca todas em memória simultaneamente
+            algorithm.common_preprocess_lazy(data, parquet_dir)
 
             workers = min(n_workers or cpu_count(), len(window_widths))
             batch_size = max(1, _TOTAL_BATCH_BUDGET // workers)
@@ -63,7 +52,7 @@ class SlidingWindowSearch:
             errors = {}
 
             ctx = multiprocessing.get_context("spawn")
-            with ctx.Pool(processes=workers) as pool:
+            with ctx.Pool(processes=workers, maxtasksperchild=1) as pool:
                 jobs = pool.imap_unordered(_evaluate_window, args)
 
                 with tqdm(
@@ -83,8 +72,6 @@ class SlidingWindowSearch:
             shutil.rmtree(parquet_dir)
 
         if errors:
-            raise RuntimeError(
-                f"{len(errors)} janela(s) falharam: {list(errors.keys())}"
-            )
+            raise RuntimeError(f"{len(errors)} janela(s) falharam: {list(errors.keys())}")
 
         return results
