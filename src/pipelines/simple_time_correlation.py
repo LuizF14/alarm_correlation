@@ -87,10 +87,9 @@ class SimpleTimeCorrelationHistory(CorrelationBase):
         partitions = data.partition_by("Node ID")
         
         strategy = TemporalThresholdEvents(threshold_minutes=threshold_minutes)
-        for node_df in tqdm(partitions, desc="Processando nós", unit="nó", total=len(partitions), leave=False, disable=not verbose):
+        for node_df in tqdm(partitions, desc="Processando nós", unit="nó", total=len(partitions), leave=True, disable=not verbose):
             physical_node_id = node_df["Node ID"][0]
             graph_repo.save_alarm_nodes(node_df, physical_node_id)
-
             rows = strategy.prepare(node_df)
             edge_gen = strategy.correlate(rows)
             graph_repo.save_temporal_edges(edge_gen, physical_node_id)
