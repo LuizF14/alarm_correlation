@@ -18,8 +18,25 @@ class BinarizePreprocessor:
         self.bin_size_seconds = bin_size_seconds
         self.min_bins = min_bins
 
-    def filter(self, incidents: list[pl.DataFrame], min_alarms: int = 5) -> list[pl.DataFrame]:
-        return [i for i in incidents if len(i) >= min_alarms]
+    def filter(self, incidents, min_events=20, min_alert_types=2):
+        filtered = []
+
+        for df in incidents:
+            if len(df) < min_events:
+                continue
+
+            n_types = (
+                df
+                .select(pl.col("alert_type").n_unique())
+                .item()
+            )
+
+            if n_types < min_alert_types:
+                continue
+
+            filtered.append(df)
+
+        return filtered
 
     def binarize(self, incidents: list[pl.DataFrame]) -> BinarizeResult:
         var_names = sorted(

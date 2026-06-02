@@ -51,17 +51,23 @@ class AlarmGraphRepository:
         else:
             raise ValueError(f"Nenhuma coluna de tempo encontrada em: {node_df.columns}")
 
+        if "incident" in node_df.columns:
+            incident = node_df["incident"].cast(pl.String) 
+        else:
+            incident = pl.Series("incident", [None] * len(node_df), dtype=pl.String)
+
         df = pl.DataFrame({
             "alert_id":   node_df["Alert ID"].cast(pl.String),
             "node_id":    pl.Series("node_id", [physical_node_id] * len(node_df), dtype=pl.String),
             "alert_type": node_df["Alert Type"].cast(pl.String),
             "start_time": start_time,
-            "end_time":   end_time
+            "end_time":   end_time,
+            "incident": incident
         })
 
         self.con.execute("""
-            INSERT INTO alarm_nodes (alert_id, node_id, alert_type, start_time, end_time)
-            SELECT alert_id, node_id, alert_type, start_time, end_time FROM df
+            INSERT INTO alarm_nodes (alert_id, node_id, alert_type, start_time, end_time, incident)
+            SELECT alert_id, node_id, alert_type, start_time, end_time, incident FROM df
         """)
         
     def save_temporal_edges(self, edge_gen: CorrelationStrategy, physical_node_id: str):
