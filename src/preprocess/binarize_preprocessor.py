@@ -18,7 +18,7 @@ class BinarizePreprocessor:
         self.bin_size_seconds = bin_size_seconds
         self.min_bins = min_bins
 
-    def filter(self, incidents, min_events=20, min_alert_types=2):
+    def filter_incidents(self, incidents, min_events=20, min_alert_types=2):
         filtered = []
 
         for df in incidents:
@@ -37,6 +37,36 @@ class BinarizePreprocessor:
             filtered.append(df)
 
         return filtered
+    
+    def remove_stopword_types(self, incidents: list, min_idf: float = 0.7) -> list:
+        total_incidents = len(incidents)
+
+        presence = (
+            pl.concat([df.select("alert_type").unique() for df in incidents])
+            .group_by("alert_type")
+            .len()
+            .rename({"len": "doc_freq"})
+            .with_columns(
+                (pl.col("doc_freq") / total_incidents).alias("presence_pct")
+            )
+            .with_columns(
+                (pl.lit(1) / pl.col("presence_pct")).log(base=2).alias("idf")
+            )
+        )
+
+        stopwords = set(
+            presence
+            .filter(pl.col("idf") < min_idf)
+            ["alert_type"]
+            .to_list()
+        )
+
+        print(f"stopwords removidos ({len(stopwords)}): {stopwords}")
+
+        return [
+            df.filter(~pl.col("alert_type").is_in(stopwords))
+            for df in incidents
+        ]
 
     def binarize(self, incidents: list[pl.DataFrame]) -> BinarizeResult:
         var_names = sorted(
